@@ -48,25 +48,31 @@ void animation_update(Animation *a, float dt, Keyframe *kfs, size_t kfs_count) {
 
 // PLUGIN
 typedef struct {
+  size_t size;
   Animation a;
+
   Font font;
 
+  Texture2D tsoding;
 } Plug;
 
 static Plug *p = NULL;
 
 static void load_resources(void) {
-  p->font = LoadFontEx(
-      "/home/shrestha/.fonts/RobotoMono/Roboto Mono Medium for Powerline.ttf",
-      FONT_SIZE, NULL, 0);
+  p->font = LoadFontEx("./resources/fonts/Roboto.ttf", FONT_SIZE, NULL, 0);
+  p->tsoding = LoadTexture("./resources/images/tsoding.png");
 }
 
-static void unload_resources(void) { UnloadFont(p->font); }
+static void unload_resources(void) {
+  UnloadFont(p->font);
+  UnloadTexture(p->tsoding);
+}
 
 void plug_init(void) {
   p = malloc(sizeof(*p));
   assert(p != NULL);
   memset(p, 0, sizeof(*p));
+  p->size = sizeof(*p);
 
   load_resources();
   TraceLog(LOG_INFO, "\033[0;32m-------------------------------\033[0m");
@@ -81,6 +87,17 @@ void *plug_pre_reload(void) {
 
 void plug_post_reload(void *state) {
   p = state;
+  if (p->size < sizeof(*p)) {
+    TraceLog(
+        LOG_INFO,
+        "\033[0;32mMigrating plug state schema %zu bytes -> %zu bytes\033[0m",
+        p->size, sizeof(*p));
+    p = realloc(p, sizeof(*p));
+    p->size = sizeof(*p);
+  } else if (p->size == sizeof(*p)) {
+    TraceLog(LOG_INFO, "\033[0;33mNo changes in plug state schema\033[0m");
+  }
+
   load_resources();
 }
 

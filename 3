@@ -29,15 +29,7 @@ typedef struct {
   float duration;
 } Keyframe;
 
-float keyframes_duration(Keyframe *kfs, size_t kfs_count) {
-  float duration = 0.0f;
-  for (size_t i = 0; i < kfs_count; i++) {
-    duration += kfs[i].duration;
-  }
-  return duration;
-}
-
-static float animation_value(Animation a, Keyframe *kfs, size_t kfs_count) {
+float animation_value(Animation a, Keyframe *kfs, size_t kfs_count) {
   assert(kfs_count > 0);
 
   Keyframe *kf = &kfs[a.i % kfs_count];
@@ -46,8 +38,7 @@ static float animation_value(Animation a, Keyframe *kfs, size_t kfs_count) {
   return Lerp(kf->from, kf->to, t);
 }
 
-static void animation_update(Animation *a, float dt, Keyframe *kfs,
-                             size_t kfs_count) {
+void animation_update(Animation *a, float dt, Keyframe *kfs, size_t kfs_count) {
   assert(kfs_count > 0);
 
   a->i = a->i % kfs_count;
@@ -66,7 +57,6 @@ typedef struct {
   Animation a;
   FFMPEG *ffmpeg;
   RenderTexture2D screen;
-  float rendering_duration;
 
   // Resoources
   Font font;
@@ -119,38 +109,38 @@ void plug_post_reload(void *state) {
   load_resources();
 }
 
-#define offset 7
-static Keyframe kfs[] = {
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    {.from = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
-     .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
-     .duration = 0.5},
-    // {.from = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH +
-    // CELL_PAD),
-    //  .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
-    //  .duration = 0.5},
-    // {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH +
-    // CELL_PAD),
-    //  .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
-    //  .duration = 0.5},
-};
-#define kfs_count NOB_ARRAY_LEN(kfs)
-
 void turing_machine_tape(Animation *a, float dt, float w, float h) {
+  size_t offset = 7;
+  Keyframe kfs[] = {
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 1) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 2) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      {.from = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
+       .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
+       .duration = 0.5},
+      // {.from = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH +
+      // CELL_PAD),
+      //  .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
+      //  .duration = 0.5},
+      // {.from = w / 2 - CELL_WIDTH / 2 - (offset + 0) * (CELL_WIDTH +
+      // CELL_PAD),
+      //  .to = w / 2 - CELL_WIDTH / 2 - (offset + 3) * (CELL_WIDTH + CELL_PAD),
+      //  .duration = 0.5},
+  };
+  size_t kfs_count = NOB_ARRAY_LEN(kfs);
+
   animation_update(a, dt, kfs, kfs_count);
 
   Vector2 cell_size = {CELL_WIDTH, CELL_HEIGHT};
@@ -198,31 +188,13 @@ void turing_machine_tape(Animation *a, float dt, float w, float h) {
 void plug_update(void) {
   BeginDrawing();
   if (p->ffmpeg) {
-    if (p->rendering_duration >= keyframes_duration(kfs, kfs_count)) {
-      ffmpeg_end_rendering(p->ffmpeg, false);
-    } else {
-      BeginTextureMode(p->screen);
-
-      turing_machine_tape(&p->a, RENDER_FPS, RENDER_WIDTH, RENDER_HEIGHT);
-      p->rendering_duration += RENDER_DELTA_TIME;
-
-      EndTextureMode();
-
-      Image image = LoadImageFromTexture(p->screen.texture);
-      if (!ffmpeg_send_frame_flipped(p->ffmpeg, image.data, image.width,
-                                     image.height)) {
-        ffmpeg_end_rendering(p->ffmpeg, false);
-        p->ffmpeg = NULL;
-      }
-      UnloadImage(image);
-    }
+    BeginTextureMode(p->screen);
+    turing_machine_tape(&p->a, RENDER_FPS, RENDER_WIDTH, RENDER_HEIGHT);
+    EndTextureMode();
   } else {
     if (IsKeyPressed(KEY_R)) {
-      p->ffmpeg =
-          ffmpeg_start_rendering(RENDER_WIDTH, RENDER_HEIGHT, RENDER_FPS);
-      p->rendering_duration = 0.0;
+      ffmpeg_start_rendering(RENDER_WIDTH, RENDER_HEIGHT, RENDER_FPS);
     }
-
     turing_machine_tape(&p->a, GetFrameTime(), GetScreenWidth(),
                         GetScreenHeight());
   }
